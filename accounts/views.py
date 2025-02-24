@@ -1,6 +1,5 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import UserSerializer, CustomTokenObtainPairSerializer, LogoutSerializer
 from .models import RefreshToken, User
@@ -14,27 +13,13 @@ class RegisterView(generics.CreateAPIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        email = request.data.get('email')
-        response.data['message'] = f"Привет, зарегистрированный пользователь {email}!"
-        return response
 
 class MeView(generics.RetrieveUpdateAPIView):
-    #permission_classes = [IsAuthenticated]  # Защита представления для проверки отключим
+    queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def get_object(self):
         return self.request.user
-
-    def get(self, request, *args, **kwargs):
-        user = self.get_object()
-        return Response({
-            'id': user.id,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        })
 
     def put(self, request, *args, **kwargs):
         user = self.get_object()
@@ -72,7 +57,6 @@ class RefreshTokenView(generics.GenericAPIView):
 
 
 class LogoutView(generics.GenericAPIView):
-    #permission_classes = [IsAuthenticated] # Защита представления для проверки отключим
     serializer_class = LogoutSerializer
 
     def post(self, request):
