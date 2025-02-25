@@ -4,8 +4,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, RefreshToken
 from django.utils import timezone
 
-class LogoutSerializer(serializers.Serializer):
-    refresh_token = serializers.UUIDField(required=True)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,7 +50,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'refresh_token': str(refresh_token.token),
         }
 
-
+class LogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.UUIDField(required=True)
+    
+    
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
