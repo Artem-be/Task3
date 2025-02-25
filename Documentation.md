@@ -2,7 +2,7 @@
 Develop a RESTful API for Authentication
 
 Base URL
-https://your-app-name.herokuapp.com/api/
+https://artem1234567.pythonanywhere.com/api/
 
 Endpoints:
 1. User Registration
