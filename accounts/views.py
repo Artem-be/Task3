@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import UserSerializer, CustomTokenObtainPairSerializer, LogoutSerializer
+from .serializers import UserSerializer, CustomTokenObtainPairSerializer, LogoutSerializer, UserProfileSerializer
 from .models import RefreshToken, User
 from django.utils import timezone
 
@@ -12,22 +12,6 @@ class RegisterView(generics.CreateAPIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-
-
-class MeView(generics.RetrieveUpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-    def get_object(self):
-        return self.request.user
-
-    def put(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
 
 class RefreshTokenView(generics.GenericAPIView):
     def post(self, request):
@@ -55,7 +39,6 @@ class RefreshTokenView(generics.GenericAPIView):
         token = CustomTokenObtainPairSerializer.get_token(user)
         return str(token.access_token)
 
-
 class LogoutView(generics.GenericAPIView):
     serializer_class = LogoutSerializer
 
@@ -70,3 +53,18 @@ class LogoutView(generics.GenericAPIView):
             return Response({"success": "User  logged out."}, status=status.HTTP_200_OK)
         except RefreshToken.DoesNotExist:
             return Response({"error": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+
+    def put(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
