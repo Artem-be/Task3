@@ -52,8 +52,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class LogoutSerializer(serializers.Serializer):
     refresh_token = serializers.UUIDField(required=True)
+<<<<<<< HEAD
 
 
+=======
+    
+    
+>>>>>>> 7de88bb45d4472fc555fe726726153789a9b37e3
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -68,4 +73,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.password = validated_data.get('password', instance.password)
         instance.save()
+<<<<<<< HEAD
         return instance
+=======
+        return instance
+>>>>>>> 7de88bb45d4472fc555fe726726153789a9b37e3
