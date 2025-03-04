@@ -1,11 +1,22 @@
+from constance import config
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import UserSerializer, CustomTokenObtainPairSerializer, LogoutSerializer
+from .serializers import UserSerializer, CustomTokenObtainPairSerializer, LogoutSerializer, UserProfileSerializer
 from .models import RefreshToken, User
 from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
+class APIRootView(APIView):
+    def get(self, request, *args, **kwargs):
+        return Response({
+            "register": "/api/register/",
+            "login": "/api/login/",
+            "refresh": "/api/refresh/",
+            "logout": "/api/logout/",
+            "me": "/api/me/",
+        })
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -14,49 +25,20 @@ class RegisterView(generics.CreateAPIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        email = request.data.get('email')
-        response.data['message'] = f"Привет, зарегистрированный пользователь {email}!"
-        return response
-
-class MeView(generics.RetrieveUpdateAPIView):
-    #permission_classes = [IsAuthenticated]  # Защита представления для проверки отключим
-    serializer_class = UserSerializer
-
-    def get_object(self):
-        return self.request.user
-
-    def get(self, request, *args, **kwargs):
-        user = self.get_object()
-        return Response({
-            'id': user.id,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        })
-
-    def put(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-
 class RefreshTokenView(generics.GenericAPIView):
     def post(self, request):
         refresh_token = request.data.get('refresh_token')
         try:
             token = RefreshToken.objects.get(token=refresh_token)
 
+            # Проверка на истечение срока действия токена
             if token.expires_at < timezone.now():
                 return Response({"error": "Refresh token has expired."}, status=status.HTTP_400_BAD_REQUEST)
 
             user = token.user
             access_token = self.create_access_token(user)
 
-            token.expires_at = timezone.now() + timezone.timedelta(days=30)
+            token.expires_at = timezone.now() + timezone.timedelta(seconds=config.REFRESH_TOKEN_LIFETIME)
             token.save()
 
             return Response({
@@ -70,9 +52,7 @@ class RefreshTokenView(generics.GenericAPIView):
         token = CustomTokenObtainPairSerializer.get_token(user)
         return str(token.access_token)
 
-
 class LogoutView(generics.GenericAPIView):
-    #permission_classes = [IsAuthenticated] # Защита представления для проверки отключим
     serializer_class = LogoutSerializer
 
     def post(self, request):
@@ -86,3 +66,20 @@ class LogoutView(generics.GenericAPIView):
             return Response({"success": "User  logged out."}, status=status.HTTP_200_OK)
         except RefreshToken.DoesNotExist:
             return Response({"error": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MeView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+
+    def put(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+

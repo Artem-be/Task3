@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^r(y3j=r_567jkh2#5djq4oo23zs2j907&g*i#&#_3&$g_tc)*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['www.artem1234567.pythonanywhere.com', 'artem1234567.pythonanywhere.com','localhost']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -39,8 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_extensions',
     'rest_framework_simplejwt',
     'accounts.apps.AccountsConfig',
+    'constance',
+    'constance.backends.database',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -140,12 +144,23 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ),
 }
+
+CONSTANCE_IGNORE_ADMIN_VERSION_CHECK = True
+
+# Настройки для django-constance
+CONSTANCE_CONFIG = {
+    'ACCESS_TOKEN_LIFETIME': (30, 'Access token lifetime in seconds'),  # 30 секунд
+    'REFRESH_TOKEN_LIFETIME': (2592000, 'Refresh token lifetime in seconds'),  # 30 дней
+}
+
 
 # Настройки для Simple JWT
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }

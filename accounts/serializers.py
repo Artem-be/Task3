@@ -4,8 +4,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, RefreshToken
 from django.utils import timezone
 
-class LogoutSerializer(serializers.Serializer):
-    refresh_token = serializers.UUIDField(required=True)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,3 +49,23 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'access_token': str(token.access_token),
             'refresh_token': str(refresh_token.token),
         }
+
+class LogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.UUIDField(required=True)
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'password']
+        extra_kwargs = {
+            'email': {'required': False},
+            'password': {'required': False},
+        }
+
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get('email', instance.email)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.password = validated_data.get('password', instance.password)
+        instance.save()
+        return instance
