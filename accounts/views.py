@@ -81,8 +81,4 @@ class MeView(generics.RetrieveUpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 7de88bb45d4472fc555fe726726153789a9b37e3
